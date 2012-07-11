@@ -1,0 +1,293 @@
+﻿<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+      "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+	<link rel="stylesheet" href="qunit.css" type="text/css" />
+	<script type="text/javascript" src="http://code.jquery.com/jquery-1.7.1.js"></script>
+	<script type="text/javascript" src="../lib/underscore.js"></script>
+	<script type="text/javascript" src="qunit.js"></script>
+	<script type="text/javascript" src="../stateHelper.js"></script>
+	<script type="text/javascript">
+
+		function getRandomInt() {
+			return Math.floor(Math.random() * 100001);
+		}
+
+
+		$(function () {
+
+			module('cloneState');
+			test('Verify Clone', function () {
+				var existingState = {
+					a: getRandomInt(),
+					b: getRandomInt(),
+					c: [getRandomInt(), getRandomInt(), getRandomInt()]
+				};
+
+				var newState = stateHelper.privateObject.cloneState(existingState);
+
+				deepEqual(newState, existingState, 'Verify copy equality');
+
+				// Modify old object
+				existingState.a = 'a';
+				existingState.b = 'b';
+				existingState.c = 'c';
+
+				notDeepEqual(newState.a, existingState.a, 'Verify property "a" is not equal');
+				notDeepEqual(newState.b, existingState.b, 'Verify property "b" is not equal');
+				notDeepEqual(newState.c, existingState.c, 'Verify property "c" is not equal');
+			});
+
+			module('update', {
+				setup: function () {
+					stateHelper.reset();
+				}
+			});
+			test('Add one value', function () {
+				var expected = getRandomInt();
+
+				stateHelper.update('a', expected);
+
+				deepEqual(stateHelper.privateObject.state, { a: expected }, 'Compare state');
+			});
+			test('Add two values', function () {
+				var expectedA = getRandomInt();
+				var expectedB = getRandomInt();
+
+				stateHelper.update('a', expectedA);
+				stateHelper.update('b', expectedB);
+
+				deepEqual(stateHelper.privateObject.state, { a: expectedA, b: expectedB }, 'Compare state');
+			});
+			test('Add two values, then update', function () {
+				stateHelper.update('a', getRandomInt());
+				stateHelper.update('b', getRandomInt());
+
+				var expectedA = getRandomInt();
+				var expectedB = getRandomInt();
+
+				stateHelper.update('a', expectedA);
+				stateHelper.update('b', expectedB);
+
+				deepEqual(stateHelper.privateObject.state, { a: expectedA, b: expectedB }, 'Compare state');
+			});
+			test('Add an array', function () {
+				var expected1 = getRandomInt();
+				var expected2 = getRandomInt();
+
+				stateHelper.update('a', [expected1, expected2]);
+
+				deepEqual(stateHelper.privateObject.state, { a: [expected1, expected2] }, 'Compare state');
+			});
+			test('Add an array, then update it', function () {
+				stateHelper.update('a', [getRandomInt(), getRandomInt()]);
+
+				var expected1 = getRandomInt();
+				var expected2 = getRandomInt();
+
+				stateHelper.update('a', [expected1, expected2]);
+
+				deepEqual(stateHelper.privateObject.state, { a: [expected1, expected2] }, 'Compare state');
+			});
+			test('Add three values, overwrite two using object', function () {
+				stateHelper.update('a', getRandomInt());
+				stateHelper.update('b', getRandomInt());
+				var expectedC = getRandomInt();
+				stateHelper.update('c', expectedC);
+
+				var expectedA = getRandomInt();
+				var expectedB = getRandomInt();
+				var newObject = { a: expectedA, b: expectedB };
+
+				stateHelper.update(newObject);
+
+				deepEqual(stateHelper.privateObject.state, { a: expectedA, b: expectedB, c: expectedC }, 'Compare state');
+			});
+
+
+			module('add', {
+				setup: function () {
+					stateHelper.reset();
+				}
+			});
+			test('Add one value', function () {
+				var expectedA = getRandomInt();
+
+				stateHelper.add('a', expectedA);
+
+				deepEqual(stateHelper.privateObject.state, { a: expectedA }, 'Compare state');
+			});
+			test('Add two values', function () {
+				var expectedA = getRandomInt();
+				var expectedB = getRandomInt();
+
+				stateHelper.add('a', expectedA);
+				stateHelper.add('b', expectedB);
+
+				deepEqual(stateHelper.privateObject.state, { a: expectedA, b: expectedB }, 'Compare state');
+			});
+			test('Add three values, one with same key', function () {
+				var expectedA = getRandomInt();
+				var expectedB1 = getRandomInt();
+				var expectedB2 = getRandomInt();
+
+				stateHelper.add('a', expectedA);
+				stateHelper.add('b', expectedB1);
+				stateHelper.add('b', expectedB2);
+
+				deepEqual(stateHelper.privateObject.state, { a: expectedA, b: [expectedB1, expectedB2] }, 'Compare state');
+			});
+			test('Add two sets of arrays', function () {
+				var expectedA1 = getRandomInt();
+				var expectedA2 = getRandomInt();
+				var expectedA3 = getRandomInt();
+				var expectedA4 = getRandomInt();
+				var expectedA5 = getRandomInt();
+
+				stateHelper.add('a', [expectedA1, expectedA2]);
+				stateHelper.add('a', [expectedA3, expectedA4]);
+				stateHelper.add('a', expectedA5);
+
+				deepEqual(stateHelper.privateObject.state, { a: [expectedA1, expectedA2, expectedA3, expectedA4, expectedA5] }, 'Compare state');
+			});
+			test('Add an object', function () {
+				var expectedA = getRandomInt();
+				var expectedB = getRandomInt();
+
+				stateHelper.add({ a: expectedA, b: expectedB });
+
+				deepEqual(stateHelper.privateObject.state, { a: expectedA, b: expectedB }, 'Compare state');
+			});
+
+
+			module('remove', {
+				setup: function () {
+					stateHelper.reset();
+				}
+			});
+			test('Add and remove a value by name', function () {
+				var a = getRandomInt();
+				stateHelper.add('a', a);
+				stateHelper.remove('a');
+
+				deepEqual(stateHelper.privateObject.state, {}, 'Compare State');
+			});
+			test('Add and remove a specific value', function () {
+				var a = getRandomInt();
+				stateHelper.add('a', a);
+				stateHelper.remove('a', a);
+
+				deepEqual(stateHelper.privateObject.state, {}, 'Compare State');
+			});
+			test('Add three values with the same name and remove one of them', function () {
+				var expectedA1 = getRandomInt();
+				var expectedA2 = getRandomInt();
+				var removedA = getRandomInt();
+
+				stateHelper.add('a', expectedA1);
+				stateHelper.add('a', expectedA2);
+				stateHelper.add('a', removedA);
+
+				stateHelper.remove('a', removedA);
+
+				deepEqual(stateHelper.privateObject.state, { a: [expectedA1, expectedA2] }, 'Compare State');
+			});
+			test('Add three values with the same name and remove two of them', function () {
+				var expectedA = getRandomInt();
+				var removedA1 = getRandomInt();
+				var removedA2 = getRandomInt();
+
+				stateHelper.add('a', expectedA);
+				stateHelper.add('a', removedA1);
+				stateHelper.add('a', removedA2);
+
+				stateHelper.remove('a', removedA1);
+				stateHelper.remove('a', removedA2);
+
+				deepEqual(stateHelper.privateObject.state, { a: expectedA }, 'Compare State');
+			});
+			test('Add three values with the same name and remove two in one call', function () {
+				var expectedA1 = getRandomInt();
+				var removedA1 = getRandomInt();
+				var removedA2 = getRandomInt();
+
+				stateHelper.add('a', expectedA1);
+				stateHelper.add('a', removedA1);
+				stateHelper.add('a', removedA2);
+
+				stateHelper.remove({ 'a': [removedA1, removedA2] });
+
+				deepEqual(stateHelper.privateObject.state, { a: expectedA1 }, 'Compare State');
+			});
+			test('Add three values with different names and remove two in one call', function () {
+				var removedA = getRandomInt();
+				var removedB = getRandomInt();
+				var expectedC = getRandomInt();
+
+				stateHelper.add('a', removedA);
+				stateHelper.add('b', removedB);
+				stateHelper.add('c', expectedC);
+
+				stateHelper.remove({ 'a': removedA, 'b': removedB });
+
+				deepEqual(stateHelper.privateObject.state, { 'c': expectedC }, 'Compare State');
+			});
+
+
+			module('reset');
+			test('', function () {
+				stateHelper.add('a', getRandomInt());
+				stateHelper.reset();
+
+				deepEqual(stateHelper.privateObject.state, {}, 'Compare state');
+			});
+
+
+			module('param', {
+				setup: function () {
+					stateHelper.reset();
+				}
+			});
+			test('', function () {
+				stateHelper.add('a', getRandomInt());
+				stateHelper.add('b', getRandomInt());
+				stateHelper.add('b', getRandomInt());
+
+				// Basically just make sure jQuery.param() or something like it is called
+				deepEqual(stateHelper.param(true), $.param(stateHelper.privateObject.state, true), 'Traditional = true');
+				deepEqual(stateHelper.param(false), $.param(stateHelper.privateObject.state, false), 'Traditional = false');
+			});
+
+
+			module('peekParam', {
+				setup: function () {
+					stateHelper.reset();
+				}
+			});
+			test('', function () {
+				var expectedA = getRandomInt();
+				var expectedB = getRandomInt();
+
+				stateHelper.update('a', expectedA);
+				stateHelper.update('b', expectedB);
+
+				var originalState = _.clone(stateHelper.privateObject.state);
+
+				var expectedC = getRandomInt();
+				var peekResult = stateHelper.peekParam({ 'add': { 'c': expectedC} });
+
+				var expectedParams = 'a=' + expectedA + '&b=' + expectedB + '&c=' + expectedC;
+
+				strictEqual(peekResult, expectedParams, 'Compare params');
+				deepEqual(stateHelper.privateObject.state, originalState, 'Verify original state');
+			});
+
+
+		});
+
+	</script>
+</head>
+<body>
+	<h1 id="qunit-header">QUnit example</h1><h2 id="qunit-banner"></h2><h2 id="qunit-userAgent"></h2><ol id="qunit-tests"></ol>
+</body>
+</html>
