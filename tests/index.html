@@ -232,7 +232,27 @@
 
 				deepEqual(stateHelper.privateObject.state, { 'c': expectedC }, 'Compare State');
 			});
+			test('Add two, remove both', function() {
+				var removedA1 = getRandomInt().toString();
+				var removedA2 = getRandomInt().toString();
 
+				stateHelper.add('a', removedA1);
+				stateHelper.add('a', removedA2);
+
+				stateHelper.remove('a', removedA1);
+				stateHelper.remove('a', removedA2);
+
+				deepEqual(stateHelper.privateObject.state, { }, 'Compare State');
+			});
+			test('Add one, remove it', function () {
+				var removedA1 = getRandomInt().toString();
+
+				stateHelper.add('a', removedA1);
+
+				stateHelper.remove('a', removedA1);
+
+				deepEqual(stateHelper.privateObject.state, {}, 'Compare State');
+			});
 
 			module('reset');
 			test('', function () {

@@ -147,15 +147,22 @@ stateHelper = (function () {
 						delete stateObj[n];
 					}
 					else {
-						var result = _.difference(stateObj[n], v);
-						if (result.length === 0) {
-							delete stateObj[n];
-						}
-						else if (result.length === 1) {
-							stateObj[n] = result[0];
+						if (_.isArray(stateObj[n])) {
+							var result = _.difference(stateObj[n], v);
+							if (result.length === 0) {
+								delete stateObj[n];
+							}
+							else if (result.length === 1) {
+								stateObj[n] = result[0];
+							}
+							else {
+								stateObj[n] = result;
+							}
 						}
 						else {
-							stateObj[n] = result;
+							if (stateObj[n] === v) {
+								delete stateObj[n];
+							}
 						}
 					}
 				}
